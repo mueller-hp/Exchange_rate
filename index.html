@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>לוח שערי חליפין | בנק ישראל</title>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Civic Design System — Hebrew-first, WCAG AA
+   Primary #003E80 · Tertiary #0061A8 · Font: Assistant
+═══════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+  --primary:           #003E80;
+  --tertiary:          #0061A8;
+  --secondary:         #1F2937;
+  --surface:           #FFFFFF;
+  --surface-container: #F3F4F6;
+  --on-surface:        #111827;
+  --border:            #E5E7EB;
+  --muted:             #9CA3AF;
+  --danger:            #DC2626;
+  --success:           #16A34A;
+  --warn-bg:           #FFFBEB;
+  --warn-border:       #FCD34D;
+  --warn-text:         #92400E;
+
+  --sp-xs: 6px;  --sp-sm: 10px; --sp-md: 18px;
+  --sp-lg: 28px; --sp-xl: 44px;
+  --r-sm: 4px;   --r-md: 8px;   --r-lg: 12px;
+  --font: 'Assistant', 'Arial Hebrew', Arial, sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* ── כותרת ──────────────────────────────────────────────── */
+.header {
+  background: var(--primary);
+  color: #fff;
+  padding: var(--sp-md) var(--sp-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+  border-bottom: 3px solid var(--tertiary);
+}
+.header h1 { font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: 0; }
+.header .subtitle { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; opacity: 0.65; margin-block-start: 3px; }
+
+.date-wrap { display: flex; align-items: center; gap: var(--sp-sm); }
+.date-wrap label { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; opacity: 0.8; }
+.date-wrap input[type="date"] {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-family: var(--font);
+  cursor: pointer;
+  outline: none;
+  direction: ltr;
+}
+.date-wrap input[type="date"]:focus { border-color: rgba(255,255,255,0.7); box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+.date-wrap input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+/* ── מיכל ───────────────────────────────────────────────── */
+.container { padding: var(--sp-lg); max-width: 920px; margin: 0 auto; }
+
+/* ── הודעות ─────────────────────────────────────────────── */
+.banner {
+  border-radius: var(--r-md);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: 13px;
+  margin-block-end: var(--sp-md);
+  display: none;
+}
+.banner.error { background: #FEF2F2; border: 1px solid #FECACA; color: var(--danger); }
+.banner.warn  { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); }
+.banner.info  { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
+.banner h3    { font-size: 13px; font-weight: 700; margin-block-end: 4px; }
+.banner pre   { font-size: 11px; margin-block-start: 6px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: var(--r-sm); direction: ltr; text-align: start; white-space: pre-wrap; word-break: break-all; overflow: auto; max-height: 120px; }
+.banner ol    { padding-inline-start: 20px; margin-block-start: 6px; }
+.banner ol li { margin-block-start: 3px; }
+.banner code  { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 11px; direction: ltr; display: inline-block; }
+
+/* ── קארדים ─────────────────────────────────────────────── */
+.cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-md);
+  margin-block-end: var(--sp-md);
+}
+
+.kpi-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: var(--sp-lg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  min-height: 148px;
+}
+.kpi-card::before {
+  content: ''; position: absolute;
+  inset-block-start: 0; inset-inline: 0; height: 3px;
+}
+.kpi-card.usd::before { background: var(--primary); }
+.kpi-card.eur::before { background: #059669; }
+.kpi-card.gbp::before { background: #7C3AED; }
+.kpi-card.loading {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-sm); color: var(--muted); font-size: 14px;
+}
+
+.currency-label { display: flex; align-items: center; gap: var(--sp-xs); margin-block-end: var(--sp-sm); }
+.currency-flag  { font-size: 18px; line-height: 1; }
+.currency-name  { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: #6B7280; }
+
+.rate-value {
+  font-size: 30px; font-weight: 700; color: var(--on-surface);
+  letter-spacing: 0; line-height: 1; margin-block-end: var(--sp-xs);
+  direction: ltr; text-align: start;
+}
+.rate-value .shekel { font-size: 16px; font-weight: 400; color: var(--muted); margin-inline-start: 3px; }
+
+.rate-change { font-size: 13px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 3px; }
+.rate-change .vs-lbl { font-weight: 400; color: var(--muted); }
+.rate-change.up   { color: var(--danger);  }
+.rate-change.down { color: var(--success); }
+.rate-change.flat { color: var(--muted);   }
+
+.rate-tip  { font-size: 11px; color: var(--muted); margin-block-start: 4px; }
+.rate-date { font-size: 11px; color: #D1D5DB; margin-block-start: var(--sp-xs); }
+
+/* ── גרף ────────────────────────────────────────────────── */
+.chart-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: var(--sp-lg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+  margin-block-end: var(--sp-sm);
+}
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-block-end: var(--sp-md); }
+.chart-title  { font-size: 14px; font-weight: 600; color: var(--secondary); }
+.chart-note   { font-size: 11px; color: var(--muted); }
+.chart-wrapper { position: relative; height: 220px; }
+
+/* ── כותרת תחתונה ───────────────────────────────────────── */
+.footer {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--muted); padding-inline: 2px;
+  flex-wrap: wrap; gap: 4px;
+}
+
+/* ── ספינר ──────────────────────────────────────────────── */
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid var(--border); border-top-color: var(--muted);
+  border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── רספונסיבי ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .cards-row { grid-template-columns: 1fr; }
+  .container { padding: var(--sp-md); }
+  .header    { padding: var(--sp-md); }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <h1>🏦 לוח שערי חליפין</h1>
+    <div class="subtitle">שערים יציגים רשמיים של בנק ישראל</div>
+  </div>
+  <div class="date-wrap">
+    <label for="datePicker">תאריך</label>
+    <input type="date" id="datePicker" aria-label="בחר תאריך לצפייה" />
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- שגיאת CORS -->
+  <div class="banner warn" id="corsWarn">
+    <h3>⚠️ בעיית CORS — הדפדפן חסם את הגישה ל-API</h3>
+    פתרון פשוט: פתח את הקובץ מ-<strong>שרת מקומי</strong> במקום ישירות מהקובץ:
+    <ol>
+      <li>פתח Terminal / שורת פקודה בתיקייה של הקובץ</li>
+      <li>הרץ: <code>python -m http.server 8080</code></li>
+      <li>פתח בדפדפן: <code>http://localhost:8080</code></li>
+    </ol>
+    <pre id="corsDetail"></pre>
+  </div>
+
+  <!-- שגיאה כללית -->
+  <div class="banner error" id="errorBanner" role="alert">
+    <h3>שגיאה בטעינת הנתונים</h3>
+    <pre id="errorDetail"></pre>
+  </div>
+
+  <!-- קארדים -->
+  <div class="cards-row" id="cardsRow" aria-live="polite">
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
+  </div>
+
+  <!-- גרף -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">היסטוריה — 30 יום אחרונים (₪ ליחידה)</div>
+      <div class="chart-note">שע״ח מפורסם א׳–ה׳ בלבד</div>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="ratesChart" aria-label="גרף שערי חליפין היסטוריים"></canvas>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>מקור: <span dir="ltr">Bank of Israel SDMX API (edge.boi.org.il)</span> &nbsp;·&nbsp; 🔴 שע״ח עלה = ייבוא יקר יותר &nbsp; 🟢 שע״ח ירד = ייבוא זול יותר</span>
+    <span id="fetchedAt"></span>
+  </div>
+
+</main>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"
+        integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi"
+        crossorigin="anonymous"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   הגדרות
+════════════════════════════════════════════════════════ */
+const CURRENCIES = [
+  { code: 'USD', flag: '🇺🇸', name: 'דולר אמריקאי', cls: 'usd', color: '#003E80' },
+  { code: 'EUR', flag: '🇪🇺', name: 'אירו',          cls: 'eur', color: '#059669' },
+  { code: 'GBP', flag: '🇬🇧', name: 'ליש״ט בריטי',   cls: 'gbp', color: '#7C3AED' },
+];
+
+const MONTHS_HE = [
+  'ינואר','פברואר','מרץ','אפריל','מאי','יוני',
+  'יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'
+];
+
+// BOI SDMX API  — https://edge.boi.org.il
+// series format: RER_{CUR}_ILS   e.g. RER_USD_ILS
+const BOI_BASE = 'https://edge.boi.org.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0';
+
+let chartInstance = null;
+
+/* ════════════════════════════════════════════════════════
+   עזרי תאריך
+════════════════════════════════════════════════════════ */
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function normalizeDate(s) {
+  if (!s) return todayStr();
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+    const [d, m, y] = s.split('/');
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const p = new Date(s);
+  return isNaN(p) ? todayStr() : p.toISOString().split('T')[0];
+}
+
+function subtractDays(dateStr, n) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtFull(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  return `${parseInt(d)} ב${MONTHS_HE[parseInt(m)-1]} ${y}`;
+}
+function fmtShort(dateStr) {
+  const [, m, d] = dateStr.split('-');
+  return `${parseInt(d)} ${MONTHS_HE[parseInt(m)-1]}`;
+}
+function fmtTime(d) {
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ════════════════════════════════════════════════════════
+   BOI SDMX API — fetch + parse
+════════════════════════════════════════════════════════ */
+async function fetchHistory(currency, endDate) {
+  const start = subtractDays(endDate, 45);
+  const series = `RER_${currency}_ILS`;
+  const url = `${BOI_BASE}/${series}?startperiod=${start}&endperiod=${endDate}&format=sdmx-json&detail=dataonly`;
+
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    // CORS or network error
+    const isCors = err instanceof TypeError && err.message.toLowerCase().includes('fetch');
+    throw { type: isCors ? 'cors' : 'network', message: err.message, currency };
+  }
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw { type: 'http', status: res.status, body, currency };
+  }
+
+  const json = await res.json();
+  return parseSdmx(json, currency);
+}
+
+/* parse SDMX-JSON 2.0 dataonly response */
+function parseSdmx(json, currency) {
+  try {
+    const struct  = json.data.structure.dimensions.observation;
+    const timeDim = struct.find(d => d.id === 'TIME_PERIOD' || d.role === 'time') || struct[0];
+    const dates   = timeDim.values.map(v => v.id);
+
+    const ds        = json.data.dataSets[0];
+    const seriesKey = Object.keys(ds.series)[0];
+    const obs       = ds.series[seriesKey].observations;
+
+    const rates = Object.entries(obs)
+      .map(([idx, vals]) => ({ date: dates[parseInt(idx)], rate: vals[0] }))
+      .filter(r => r.date && r.rate != null)
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return { currency, rates };
+  } catch (e) {
+    console.error('SDMX parse error', currency, e, json);
+    return { currency, rates: [] };
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   ממשק — קארדים
+════════════════════════════════════════════════════════ */
+function renderCards(results) {
+  const row = document.getElementById('cardsRow');
+  row.innerHTML = '';
+
+  results.forEach((data, i) => {
+    const { code, flag, name, cls } = CURRENCIES[i];
+    const rates = (data && Array.isArray(data.rates)) ? data.rates : [];
+
+    if (!rates.length) {
+      row.innerHTML += `
+        <div class="kpi-card ${cls}">
+          <div class="currency-label">
+            <span class="currency-flag">${flag}</span>
+            <span class="currency-name">${name} · <span dir="ltr">${code}</span></span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px;">אין נתונים לתאריך זה</p>
+        </div>`;
+      return;
+    }
+
+    const latest = rates[rates.length - 1];
+    const prev   = rates.length >= 2 ? rates[rates.length - 2] : null;
+
+    let changeHtml = '<span class="rate-change flat">אין נתונים קודמים</span>';
+    let tipHtml    = '';
+
+    if (prev) {
+      const abs  = latest.rate - prev.rate;
+      const pct  = (abs / prev.rate) * 100;
+      const dir  = abs >  0.00005 ? 'up' : abs < -0.00005 ? 'down' : 'flat';
+      const arrow= dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—';
+      const sign = abs >= 0 ? '+' : '';
+      const tip  = dir === 'up'
+        ? 'השקל נחלש · ייבוא יקר יותר'
+        : dir === 'down' ? 'השקל התחזק · ייבוא זול יותר' : 'ללא שינוי';
+
+      changeHtml = `
+        <span class="rate-change ${dir}">
+          ${arrow}&nbsp;<bdi>${sign}${Math.abs(abs).toFixed(4)}</bdi>&nbsp;(<bdi>${sign}${pct.toFixed(2)}%</bdi>)
+          <span class="vs-lbl">לעומת ${fmtShort(prev.date)}</span>
+        </span>`;
+      tipHtml = `<div class="rate-tip">${tip}</div>`;
+    }
+
+    row.innerHTML += `
+      <div class="kpi-card ${cls}">
+        <div class="currency-label">
+          <span class="currency-flag">${flag}</span>
+          <span class="currency-name">${name} · <span dir="ltr">${code}</span></span>
+        </div>
+        <div class="rate-value"><bdi>${latest.rate.toFixed(4)}</bdi><span class="shekel"> ₪</span></div>
+        ${changeHtml}
+        ${tipHtml}
+        <div class="rate-date">שע״ח ל-${fmtFull(latest.date)}</div>
+      </div>`;
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   ממשק — גרף
+════════════════════════════════════════════════════════ */
+function renderChart(results) {
+  const allDates = [...new Set(
+    results.flatMap(r => (r && Array.isArray(r.rates) ? r.rates : []).map(p => p.date))
+  )].sort();
+
+  if (!allDates.length) return;
+
+  const FONT = { family: "'Assistant', 'Arial Hebrew', Arial, sans-serif" };
+
+  const datasets = results.map((data, i) => {
+    const { code, color } = CURRENCIES[i];
+    const map = Object.fromEntries((data && data.rates ? data.rates : []).map(p => [p.date, p.rate]));
+    return {
+      label: code + ' / ₪',
+      data: allDates.map(d => map[d] !== undefined ? map[d] : null),
+      borderColor: color,
+      backgroundColor: color + '14',
+      borderWidth: 2,
+      pointRadius: 2.5,
+      pointHoverRadius: 5,
+      tension: 0.35,
+      fill: false,
+      spanGaps: true,
+    };
+  });
+
+  const ctx = document.getElementById('ratesChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: allDates.map(fmtShort), datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { ...FONT, size: 11 }, usePointStyle: true, pointStyleWidth: 8, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: '#1F2937',
+          titleFont: { ...FONT, size: 11 },
+          bodyFont:  { ...FONT, size: 11 },
+          callbacks: {
+            label: ctx => '  ' + ctx.dataset.label + ':  ' +
+              (ctx.parsed.y != null ? ctx.parsed.y.toFixed(4) : 'N/A') + ' ₪'
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { ...FONT, size: 10 }, maxTicksLimit: 10, color: '#9CA3AF' } },
+        y: { grid: { color: '#F3F4F6' }, ticks: { font: { ...FONT, size: 10 }, color: '#9CA3AF', callback: v => v.toFixed(3) + ' ₪' } }
+      }
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   טעינה
+════════════════════════════════════════════════════════ */
+function hideAll() {
+  ['corsWarn','errorBanner'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+async function load() {
+  const rawDate      = document.getElementById('datePicker').value;
+  const selectedDate = normalizeDate(rawDate);
+  hideAll();
+
+  document.getElementById('cardsRow').innerHTML = `
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
+    <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>`;
+
+  try {
+    const results = await Promise.all(CURRENCIES.map(c => fetchHistory(c.code, selectedDate)));
+    renderCards(results);
+    renderChart(results);
+    document.getElementById('fetchedAt').textContent = 'עודכן ב-' + fmtTime(new Date());
+
+  } catch (err) {
+    console.error('[BOI]', err);
+    document.getElementById('cardsRow').innerHTML = '';
+
+    if (err && err.type === 'cors') {
+      // CORS error — show friendly guide
+      document.getElementById('corsDetail').textContent = err.message || 'Failed to fetch';
+      document.getElementById('corsWarn').style.display = 'block';
+    } else {
+      // Generic error
+      const detail = err.type === 'http'
+        ? `HTTP ${err.status}\n${err.body}`
+        : (err.message || JSON.stringify(err));
+      document.getElementById('errorDetail').textContent = detail;
+      document.getElementById('errorBanner').style.display = 'block';
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   אתחול
+════════════════════════════════════════════════════════ */
+const picker = document.getElementById('datePicker');
+const today  = todayStr();
+picker.value = today;
+picker.max   = today;
+picker.addEventListener('change', load);
+load();
+</script>
+</body>
+</html>
