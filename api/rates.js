@@ -60,7 +60,7 @@ module.exports = async function handler(req, res) {
     const obs       = ds.series[seriesKey].observations;
 
     const rates = Object.entries(obs)
-      .map(([idx, vals]) => ({ date: dates[parseInt(idx)], rate: vals[0] }))
+      .map(([idx, vals]) => ({ date: dates[parseInt(idx)], rate: parseFloat(vals[0]) }))
       .filter(r => r.date && r.rate != null)
       .sort((a, b) => a.date.localeCompare(b.date));
 
