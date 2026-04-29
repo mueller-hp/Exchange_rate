@@ -200,18 +200,6 @@ body {
 
 <main class="container">
 
-  <!-- שגיאת CORS -->
-  <div class="banner warn" id="corsWarn">
-    <h3>⚠️ בעיית CORS — הדפדפן חסם את הגישה ל-API</h3>
-    פתרון פשוט: פתח את הקובץ מ-<strong>שרת מקומי</strong> במקום ישירות מהקובץ:
-    <ol>
-      <li>פתח Terminal / שורת פקודה בתיקייה של הקובץ</li>
-      <li>הרץ: <code>python -m http.server 8080</code></li>
-      <li>פתח בדפדפן: <code>http://localhost:8080</code></li>
-    </ol>
-    <pre id="corsDetail"></pre>
-  </div>
-
   <!-- שגיאה כללית -->
   <div class="banner error" id="errorBanner" role="alert">
     <h3>שגיאה בטעינת הנתונים</h3>
@@ -263,9 +251,7 @@ const MONTHS_HE = [
   'יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'
 ];
 
-// BOI SDMX API  — https://edge.boi.org.il
-// series format: RER_{CUR}_ILS   e.g. RER_USD_ILS
-const BOI_BASE = 'https://edge.boi.org.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0';
+// Route through /api/rates Vercel proxy to avoid CORS restrictions
 
 let chartInstance = null;
 
@@ -313,16 +299,13 @@ function fmtTime(d) {
 ════════════════════════════════════════════════════════ */
 async function fetchHistory(currency, endDate) {
   const start = subtractDays(endDate, 45);
-  const series = `RER_${currency}_ILS`;
-  const url = `${BOI_BASE}/${series}?startperiod=${start}&endperiod=${endDate}&format=sdmx-json&detail=dataonly`;
+  const url = `/api/rates?currency=${currency}&startDate=${start}&endDate=${endDate}`;
 
   let res;
   try {
     res = await fetch(url);
   } catch (err) {
-    // CORS or network error
-    const isCors = err instanceof TypeError && err.message.toLowerCase().includes('fetch');
-    throw { type: isCors ? 'cors' : 'network', message: err.message, currency };
+    throw { type: 'network', message: err.message, currency };
   }
 
   if (!res.ok) {
@@ -330,31 +313,7 @@ async function fetchHistory(currency, endDate) {
     throw { type: 'http', status: res.status, body, currency };
   }
 
-  const json = await res.json();
-  return parseSdmx(json, currency);
-}
-
-/* parse SDMX-JSON 2.0 dataonly response */
-function parseSdmx(json, currency) {
-  try {
-    const struct  = json.data.structure.dimensions.observation;
-    const timeDim = struct.find(d => d.id === 'TIME_PERIOD' || d.role === 'time') || struct[0];
-    const dates   = timeDim.values.map(v => v.id);
-
-    const ds        = json.data.dataSets[0];
-    const seriesKey = Object.keys(ds.series)[0];
-    const obs       = ds.series[seriesKey].observations;
-
-    const rates = Object.entries(obs)
-      .map(([idx, vals]) => ({ date: dates[parseInt(idx)], rate: vals[0] }))
-      .filter(r => r.date && r.rate != null)
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    return { currency, rates };
-  } catch (e) {
-    console.error('SDMX parse error', currency, e, json);
-    return { currency, rates: [] };
-  }
+  return res.json(); // { currency, rates: [{date, rate}] }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -484,9 +443,7 @@ function renderChart(results) {
    טעינה
 ════════════════════════════════════════════════════════ */
 function hideAll() {
-  ['corsWarn','errorBanner'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
-  });
+  document.getElementById('errorBanner').style.display = 'none';
 }
 
 async function load() {
@@ -509,18 +466,11 @@ async function load() {
     console.error('[BOI]', err);
     document.getElementById('cardsRow').innerHTML = '';
 
-    if (err && err.type === 'cors') {
-      // CORS error — show friendly guide
-      document.getElementById('corsDetail').textContent = err.message || 'Failed to fetch';
-      document.getElementById('corsWarn').style.display = 'block';
-    } else {
-      // Generic error
-      const detail = err.type === 'http'
-        ? `HTTP ${err.status}\n${err.body}`
-        : (err.message || JSON.stringify(err));
-      document.getElementById('errorDetail').textContent = detail;
-      document.getElementById('errorBanner').style.display = 'block';
-    }
+    const detail = err.type === 'http'
+      ? `HTTP ${err.status}\n${err.body}`
+      : (err.message || JSON.stringify(err));
+    document.getElementById('errorDetail').textContent = detail;
+    document.getElementById('errorBanner').style.display = 'block';
   }
 }
 
