@@ -1,0 +1,8 @@
+{
+    "version": 2,
+    "buildCommand": "",
+    "outputDirectory": ".",
+    "rewrites": [
+          { "source": "/api/rates", "destination": "/api/rates.js" }
+    ]
+}
