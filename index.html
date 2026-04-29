@@ -78,6 +78,23 @@ body {
 .date-wrap input[type="date"]:focus { border-color: rgba(255,255,255,0.7); box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
 .date-wrap input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
+.refresh-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 7px 11px;
+  border-radius: var(--r-md);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.refresh-btn:hover  { background: rgba(255,255,255,0.25); }
+.refresh-btn:active { background: rgba(255,255,255,0.35); }
+.refresh-btn .refresh-icon { display: inline-block; transition: transform 0.2s; }
+.refresh-btn.spinning .refresh-icon { animation: spin 0.7s linear infinite; }
+
 /* ── מיכל ───────────────────────────────────────────────── */
 .container { padding: var(--sp-lg); max-width: 920px; margin: 0 auto; }
 
@@ -195,6 +212,9 @@ body {
   <div class="date-wrap">
     <label for="datePicker">תאריך</label>
     <input type="date" id="datePicker" aria-label="בחר תאריך לצפייה" />
+    <button id="refreshBtn" class="refresh-btn" aria-label="רענן נתונים" title="רענן נתונים">
+      <span class="refresh-icon">↻</span>
+    </button>
   </div>
 </header>
 
@@ -226,7 +246,7 @@ body {
 
   <div class="footer">
     <span>מקור: <span dir="ltr">Bank of Israel SDMX API (edge.boi.org.il)</span> &nbsp;·&nbsp; 🔴 שע״ח עלה = ייבוא יקר יותר &nbsp; 🟢 שע״ח ירד = ייבוא זול יותר</span>
-    <span id="fetchedAt"></span>
+    <span><span id="fetchedAt"></span><span id="nextRefresh" style="margin-inline-start:8px;opacity:0.7;"></span></span>
   </div>
 
 </main>
@@ -291,7 +311,9 @@ function fmtShort(dateStr) {
   return `${parseInt(d)} ${MONTHS_HE[parseInt(m)-1]}`;
 }
 function fmtTime(d) {
-  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  return String(d.getHours()).padStart(2,'0') + ':' +
+         String(d.getMinutes()).padStart(2,'0') + ':' +
+         String(d.getSeconds()).padStart(2,'0');
 }
 
 /* ════════════════════════════════════════════════════════
@@ -451,6 +473,9 @@ async function load() {
   const selectedDate = normalizeDate(rawDate);
   hideAll();
 
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+
   document.getElementById('cardsRow').innerHTML = `
     <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
     <div class="kpi-card loading"><span class="spinner"></span><span>טוען...</span></div>
@@ -471,7 +496,35 @@ async function load() {
       : (err.message || JSON.stringify(err));
     document.getElementById('errorDetail').textContent = detail;
     document.getElementById('errorBanner').style.display = 'block';
+  } finally {
+    btn.classList.remove('spinning');
+    scheduleAutoRefresh();
   }
+}
+
+/* ════════════════════════════════════════════════════════
+   רענון אוטומטי + כפתור רענן
+════════════════════════════════════════════════════════ */
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+let autoRefreshTimer = null;
+let countdownTimer   = null;
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  const endsAt = Date.now() + AUTO_REFRESH_MS;
+  countdownTimer = setInterval(() => {
+    const rem = endsAt - Date.now();
+    if (rem <= 0) { clearInterval(countdownTimer); return; }
+    const m = String(Math.floor(rem / 60000)).padStart(2, '0');
+    const s = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
+    document.getElementById('nextRefresh').textContent = `· רענון בעוד ${m}:${s}`;
+  }, 1000);
+}
+
+function scheduleAutoRefresh() {
+  clearTimeout(autoRefreshTimer);
+  startCountdown();
+  autoRefreshTimer = setTimeout(load, AUTO_REFRESH_MS);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -482,6 +535,7 @@ const today  = todayStr();
 picker.value = today;
 picker.max   = today;
 picker.addEventListener('change', load);
+document.getElementById('refreshBtn').addEventListener('click', load);
 load();
 </script>
 </body>
